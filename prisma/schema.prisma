@@ -1,0 +1,94 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id             String    @id @default(cuid())
+    name           String
+    email          String    @unique
+    emailVerified  DateTime?
+    password       String
+    mobile         String?
+    image          String?
+    gender         Gender
+    nationality    String?
+    passportNumber String?
+    role           Role      @default(USER)
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
+    Booking        Booking[]
+}
+
+model Flight {
+    id            String    @id @default(cuid())
+    flightNumber  String    @unique
+    origin        String
+    destination   String
+    departureTime DateTime
+    arrivalTime   DateTime
+    airline       String
+    aircraft      String
+    distance      Int
+    Seats         Seat[]
+    Bookings      Booking[]
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
+}
+
+model Seat {
+    id       String     @id @default(cuid())
+    number   String
+    class    Class
+    price    Float
+    Flight   Flight     @relation(fields: [flightId], references: [id])
+    flightId String
+    Booking  Booking[]
+    status   SeatStatus @default(AVAILABLE)
+}
+
+model Booking {
+    id        String        @id @default(cuid())
+    createdAt DateTime      @default(now())
+    flight    Flight        @relation(fields: [flightId], references: [id])
+    flightId  String
+    user      User          @relation(fields: [userId], references: [id])
+    userId    String
+    seat      Seat          @relation(fields: [seatId], references: [id])
+    seatId    String
+    status    BookingStatus
+    updatedAt DateTime      @updatedAt
+
+    @@index([flightId, seatId])
+}
+
+enum Gender {
+    MALE
+    FEMALE
+}
+
+enum Class {
+    ECONOMY
+    BUSINESS
+    FIRST
+}
+
+enum BookingStatus {
+    PENDING
+    CONFIRMED
+    CANCELLED
+}
+
+enum SeatStatus {
+    AVAILABLE
+    BOOKED
+}
+
+enum Role {
+    ADMIN
+    USER
+}
